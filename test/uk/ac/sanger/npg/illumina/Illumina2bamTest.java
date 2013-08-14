@@ -23,8 +23,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.TimeZone;
+import java.util.List;
 import net.sf.samtools.SAMProgramRecord;
+import net.sf.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMFileReader;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import uk.ac.sanger.npg.bam.util.CheckMd5;
@@ -95,8 +99,16 @@ public class Illumina2bamTest {
                 + " VERBOSITY=INFO QUIET=false MAX_RECORDS_IN_RAM=500000 CREATE_INDEX=false",
                 testData.illumina2bam.getCommandLine()
                );
+	
+        SAMFileReader samFileReader = new SAMFileReader(testData.tempBamFile);
+        SAMProgramRecord pgr = samFileReader.getFileHeader().getProgramRecords().get(0);
+        List<SAMReadGroupRecord> rgl =  samFileReader.getFileHeader().getReadGroups();
+        assertEquals(1, rgl.size());
+        assertNull(pgr.getPreviousProgramGroupId() );
+        assertEquals("Ensure PG field of RG record corresponds to the appropriate program", pgr.getId(),  rgl.get(0).getAttribute("PG"));
+        samFileReader.close();
 
-        assertEquals("62749a4c4cd90e192cd7b8765108d6f8", CheckMd5.getBamMd5AfterRemovePGVersion(testData.tempBamFile, "Illumina2bam"));
+        assertEquals("ce104cf5c591cdbf94eb7b584d6f5352", CheckMd5.getBamMd5AfterRemovePGVersion(testData.tempBamFile, "Illumina2bam"));
     }
 
     /**
@@ -136,7 +148,7 @@ public class Illumina2bamTest {
                 testData.illumina2bam.getCommandLine()
                );
         
-        assertEquals("e4623e8ac08fb9194a5f5a1c1eb836a2", CheckMd5.getBamMd5AfterRemovePGVersion(testData.tempBamFile, "Illumina2bam"));
+        assertEquals("1ce96b8c94224cfaa260e871f2e997dc", CheckMd5.getBamMd5AfterRemovePGVersion(testData.tempBamFile, "Illumina2bam"));
     }
 
     /**
@@ -178,6 +190,6 @@ public class Illumina2bamTest {
                 testData.illumina2bam.getCommandLine()
                );
 
-        assertEquals("c834e341c2dd4d1037c149eae86af414",CheckMd5.getBamMd5AfterRemovePGVersion(testData.tempBamFile, "Illumina2bam"));
+        assertEquals("f8452061bbc72a2dbfb4eda3d5ed896a",CheckMd5.getBamMd5AfterRemovePGVersion(testData.tempBamFile, "Illumina2bam"));
     }
 }
